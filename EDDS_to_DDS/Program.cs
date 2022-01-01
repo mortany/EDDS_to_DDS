@@ -21,7 +21,7 @@ namespace EDDS_to_DDS
         static void OpenFile(string file)
         {
             List<int> copy_blocks = new List<int>();
-            List<int> LZO_blocks = new List<int>();
+            //List<int> LZO_blocks = new List<int>(); TODO later
             List<int> LZ4_blocks = new List<int>();
             List<byte> Decoded_blocks = new List<byte>();
 
@@ -48,6 +48,13 @@ namespace EDDS_to_DDS
             using (var reader = new BinaryReader(File.Open(file, FileMode.Open)))
             {
                 byte[] dds_header = reader.ReadBytes(128);
+                byte[] dds_header_dx10 = null;
+
+                if(dds_header[84]=='D'&& dds_header[85] == 'X' && dds_header[86] == '1' && dds_header[87] == '0')
+                {
+                    dds_header_dx10 = reader.ReadBytes(20);
+                }
+
                 FindBlocks(reader);
 
                 foreach (int count in copy_blocks)
@@ -82,7 +89,8 @@ namespace EDDS_to_DDS
 
                     Decoded_blocks.InsertRange(0, target);
                 }
-
+                if(dds_header_dx10!= null)
+                    Decoded_blocks.InsertRange(0, dds_header_dx10);
                 Decoded_blocks.InsertRange(0, dds_header);
                 byte[] final = Decoded_blocks.ToArray();
 
